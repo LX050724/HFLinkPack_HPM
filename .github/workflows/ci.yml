@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  # 提交到主分支：验证交叉构建与打包链（release 上传按事件类型跳过）
+  # 限定 branches 同时排除 tag push——发布 Release 时 GitHub 会推 tag，避免与 release 事件重复触发
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+  # 发布 Release 时自动触发（草稿点"发布"那一刻），把 zip + pack.json 挂到该 Release 附件
+  release:
+    types: [published]
+
+# 同分支新提交自动取消旧运行
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & pack (riscv-none-elf)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # contents: write 用于 release 触发时上传 zip + pack.json 到 Release 附件
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # xpack riscv-none-elf 工具链（自带 newlib 头文件——Ubuntu apt 的
+      # gcc-riscv64-unknown-elf 不含 newlib，hpm_common.h 的 assert.h 会编译失败）；
+      # riscv-none-elf- 前缀在 CMakeLists HFALGO_KNOWN_PREFIXES 内，multilib 支持
+      # rv32imac_zicsr_zifencei/ilp32
+      - name: Install RISC-V cross toolchain
+        run: |
+          curl -sSL https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v15.2.0-1/xpack-riscv-none-elf-gcc-15.2.0-1-linux-x64.tar.gz -o /tmp/xpack-riscv.tar.gz
+          sudo tar -xzf /tmp/xpack-riscv.tar.gz -C /opt
+          echo "/opt/xpack-riscv-none-elf-gcc-15.2.0-1/bin" >> "$GITHUB_PATH"
+
+      - name: Configure & build
+        run: |
+          cmake -S . -B build -G Ninja
+          cmake --build build
+
+      # pack.json 权威在本仓库 pack/<name>/<ver>/（HFLinkSDK 为 private，CI 不跨仓取数）
+      - name: Pack chip zip
+        run: |
+          python3 tools/pack.py --pack
+
+      # 防静默缺件：zip 必含 pack.json + flash/*.elf；每组 ELF 入口/描述符号必须在
+      # （ELF 内容权威校验在 SDK 侧 HFLink_Flm_Parse，此处只做符号存在性快速自检）
+      - name: Verify pack artifacts
+        run: |
+          set -e
+          ls dist/*.zip
+          unzip -l dist/*.zip
+          unzip -l dist/*.zip | grep -q ' pack.json$' || { echo "::error::zip 缺 pack.json"; exit 1; }
+          unzip -l dist/*.zip | grep -Eq ' flash/.*\.elf$' || { echo "::error::zip 缺算法 ELF"; exit 1; }
+          for elf in build/out/*.elf; do
+            riscv-none-elf-nm "$elf" | grep -Eq ' (Init|UnInit|EraseChip|EraseSector|ProgramPage|FlashDevice)$' \
+              || { echo "::error::$elf 缺少 FLM 同构入口/描述符号"; exit 1; }
+          done
+          echo "产物自检通过"
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HFLinkPack_HPM-dist
+          path: dist/*.zip
+          if-no-files-found: error
+
+      # release 触发时把 zip + pack.json 挂到该 Release 附件（--clobber 允许重跑覆盖）：
+      # PackManager 自建源按「名为 pack.json 的资产 + .zip 资产」识别发布包
+      - name: Upload assets to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          assets="$(ls -1 dist/*.zip) $(find pack -mindepth 3 -maxdepth 3 -name pack.json -type f)"
+          echo "Upload assets:$assets"
+          # shellcheck disable=SC2086
+          gh release upload "${{ github.event.release.tag_name }}" $assets --clobber

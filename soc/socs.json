@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "comment": "HPM 全系 SoC 烧录算法配置（单一来源：CMake 构建与 tools/pack.py 打包均读本文件）。xpi1_base 为 null 表示该 SoC 无 XPI1（Init 拒绝 0x90000000 基址）。page/sector 为 HPM XPI NOR 统一几何。算法装载域全系 ILM@0 低 64KB。tested_hw 仅对经 HFLinkSDK 实机烧写验证过的 SoC 为 true。group 为算法分组（SEGGER 语义：一个系列共用一个算法）——按 (xpi0_base, xpi1_base) 元组聚合，组名取组内字典序首个系列；同窗口基址在不同族映射不同 XPI 控制器，运行时不可推导，故按组链接。",
+  "page_size": 256,
+  "sector_size": 4096,
+  "flash_size": "0x100000",
+  "workspace_start": "0x00000000",
+  "workspace_size": "0x00010000",
+  "socs": [
+    {
+      "soc": "HPM5361",
+      "series": "HPM5300",
+      "sdk_soc_dir": "HPM5300/HPM5361",
+      "xpi0_base": "0xF3000000",
+      "xpi1_base": null,
+      "tested_hw": true,
+      "group": "HPM5300"
+    },
+    {
+      "soc": "HPM5E31",
+      "series": "HPM5E00",
+      "sdk_soc_dir": "HPM5E00/HPM5E31",
+      "xpi0_base": "0xF3000000",
+      "xpi1_base": null,
+      "tested_hw": false,
+      "group": "HPM5300"
+    },
+    {
+      "soc": "HPM6280",
+      "series": "HPM6200",
+      "sdk_soc_dir": "HPM6200/HPM6280",
+      "xpi0_base": "0xF3040000",
+      "xpi1_base": null,
+      "tested_hw": false,
+      "group": "HPM6200"
+    },
+    {
+      "soc": "HPM6360",
+      "series": "HPM6300",
+      "sdk_soc_dir": "HPM6300/HPM6360",
+      "xpi0_base": "0xF3040000",
+      "xpi1_base": "0xF3044000",
+      "tested_hw": false,
+      "group": "HPM6300"
+    },
+    {
+      "soc": "HPM6750",
+      "series": "HPM6700",
+      "sdk_soc_dir": "HPM6700/HPM6750",
+      "xpi0_base": "0xF3040000",
+      "xpi1_base": "0xF3044000",
+      "tested_hw": false,
+      "group": "HPM6300"
+    },
+    {
+      "soc": "HPM6880",
+      "series": "HPM6800",
+      "sdk_soc_dir": "HPM6800/HPM6880",
+      "xpi0_base": "0xF3000000",
+      "xpi1_base": null,
+      "tested_hw": false,
+      "group": "HPM5300"
+    },
+    {
+      "soc": "HPM6E80",
+      "series": "HPM6E00",
+      "sdk_soc_dir": "HPM6E00/HPM6E80",
+      "xpi0_base": "0xF3000000",
+      "xpi1_base": null,
+      "tested_hw": false,
+      "group": "HPM5300"
+    },
+    {
+      "soc": "HPM6P81",
+      "series": "HPM6P00",
+      "sdk_soc_dir": "HPM6P00/HPM6P81",
+      "xpi0_base": "0xF3000000",
+      "xpi1_base": null,
+      "tested_hw": false,
+      "group": "HPM5300"
+    }
+  ]
+}

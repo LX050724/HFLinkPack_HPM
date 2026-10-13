@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 3,
+  "vendor": "HFLink",
+  "name": "HPM",
+  "version": "0.1.0",
+  "documents": [
+    {
+      "packageVendor": "HFLink",
+      "families": {
+        "HPM5300": {
+          "description": "HPM5300 系列（RV32-IMAFDCBP，Andes D25F 内核）——HFLink 自有芯片包。数据来源：内存映射 HPM5300 UM Rev1.0 表 29；型号/主频/容量 HPM5300 DS Rev0.11 订购信息；JTAG 链参数（IDCODE/IR 长度）与 SBA 可达性为 HPM5361ICB1 实机实测（2026-10-09）。算法：HPM5300.elf（RV32 ELF 容器，与 ARM FLM 同构——几何/入口自描述于镜像内 FlashDevice 与符号表，XPI NOR 全自动探测，系列共用一个 ELF），实测于 HPM5361，bank 按 1MB 上限声明（HPM5361 实测容量；5331/5321/5301 实际容量以各自 DS 为准，按需擦除语义下上限声明安全）",
+          "algorithm": [
+            {
+              "path": "Packs/HFLink/HPM/0.1.0/flash/HPM5300.elf",
+              "Pname": "P0",
+              "start": "0x80000000",
+              "size": "0x100000",
+              "RAMstart": "0x0",
+              "RAMsize": "0x20000",
+              "default": true
+            }
+          ],
+          "memory": {
+            "ILM": {
+              "access": "rwx",
+              "start": "0x00000000",
+              "size": "0x20000",
+              "default": false,
+              "startup": false,
+              "init": true
+            },
+            "DLM": {
+              "access": "rw",
+              "start": "0x00080000",
+              "size": "0x20000",
+              "default": false,
+              "startup": false,
+              "init": false
+            },
+            "AHB_SRAM": {
+              "access": "rw",
+              "start": "0xF0400000",
+              "size": "0x8000",
+              "default": false,
+              "startup": false,
+              "init": false
+            },
+            "XIP": {
+              "access": "rx",
+              "start": "0x80000000",
+              "size": "0x0FF00000",
+              "default": false,
+              "startup": true,
+              "init": false
+            },
+            "ROM": {
+              "access": "r",
+              "start": "0x20000000",
+              "size": "0x20000",
+              "default": false,
+              "startup": false,
+              "init": false
+            }
+          },
+          "processor": [
+            {
+              "Pname": "P0",
+              "Dcore": "RV32",
+              "DcoreVersion": "Andes D25F",
+              "Dfpu": "FP",
+              "Ddsp": "DSP",
+              "Dmpu": "MPU",
+              "Dendian": "Little-endian",
+              "Dclock": "480000000"
+            }
+          ],
+          "debug": [
+            {
+              "Pname": "P0",
+              "dp": "0"
+            }
+          ],
+          "debugport": [
+            {
+              "dp": "0",
+              "protocol": "jtag",
+              "tapindex": "0",
+              "idcode": "0x1000563D",
+              "irlen": "5"
+            }
+          ],
+          "accessport": [],
+          "sequences": [],
+          "device": {
+            "HPM5361": {
+              "description": "全功能型，480MHz；ILM/DLM 各 128KB + AHB SRAM 32KB，1MB 片上 Flash；JTAG 参数为该型号实机实测",
+              "algorithm": [],
+              "memory": {},
+              "processor": [],
+              "debug": [],
+              "debugport": [],
+              "accessport": [],
+              "sequences": []
+            },
+            "HPM5331": {
+              "description": "运动控制型，480MHz（PWM/QEI/SEI/MMC/RDC 齐备，无 CAN-FD/DAC）；内存映射与 HPM5361 相同（DS Rev0.11 订购信息）",
+              "algorithm": [],
+              "memory": {},
+              "processor": [],
+              "debug": [],
+              "debugport": [],
+              "accessport": [],
+              "sequences": []
+            },
+            "HPM5321": {
+              "description": "通讯互联型，480MHz（CAN-FD×4/UART×9）；内存映射与 HPM5361 相同（DS Rev0.11 订购信息）",
+              "algorithm": [],
+              "memory": {},
+              "processor": [],
+              "debug": [],
+              "debugport": [],
+              "accessport": [],
+              "sequences": []
+            },
+            "HPM5301": {
+              "description": "基础款，360MHz；内存映射与 HPM5361 相同（DS Rev0.11 订购信息）",
+              "algorithm": [],
+              "memory": {},
+              "processor": [],
+              "debug": [],
+              "debugport": [],
+              "accessport": [],
+              "sequences": []
+            }
+          },
+          "subFamily": {}
+        },
+        "HPM6700": {
+          "description": "HPM6700 系列（RV32，Andes D45MC 双核）——HFLink 自有芯片包。数据来源：内存映射 HPM6750 flash_xip 链接脚本（sdk_env hpm_sdk Rev2025）与 HPM6750EVKmini 实机（2026-10-12/13）；JTAG 链参数（单 TAP IDCODE 0x1000563D、IR=5、单 DM 0.13 双 hart、SBA sbasize=32）为实机 T0 定标。算法：HPM6300.elf（HPM6300 组——XPI0 0xF3040000/XPI1 0xF3044000 双控制器同窗口，XPI NOR 全自动探测；本组未经实机烧写验证）。多核：P0 Punits=2，核会话键 (Pname,Punit) 与 ARM 同构（punit=hartsel）；core1 上电 boot-wait 须 release_core1 序列放行（见 Tests/Smoke/hpm6750_release_core1.lua）。无片上 flash——外置 SPI NOR 经 XPI 映射于 XIP 窗口，容量按 XIP 最大支持设计（典型 25Q256 = 32MB）",
+          "algorithm": [
+            {
+              "path": "Packs/HFLink/HPM/0.1.0/flash/HPM6300.elf",
+              "Pname": "P0",
+              "start": "0x80000000",
+              "size": "0x2000000",
+              "RAMstart": "0x0",
+              "RAMsize": "0x10000",
+              "default": true
+            }
+          ],
+          "memory": {
+            "ILM": {
+              "access": "rwx",
+              "start": "0x00000000",
+              "size": "0x40000",
+              "default": false,
+              "startup": false,
+              "init": true
+            },
+            "DLM": {
+              "access": "rw",
+              "start": "0x00080000",
+              "size": "0x40000",
+              "default": false,
+              "startup": false,
+              "init": false
+            },
+            "AXI_SRAM0": {
+              "access": "rw",
+              "start": "0x01080000",
+              "size": "0x80000",
+              "default": false,
+              "startup": false,
+              "init": false
+            },
+            "AXI_SRAM1": {
+              "access": "rw",
+              "start": "0x01100000",
+              "size": "0x40000",
+              "default": false,
+              "startup": false,
+              "init": false
+            },
+            "AHB_SRAM": {
+              "access": "rw",
+              "start": "0xF0300000",
+              "size": "0x8000",
+              "default": false,
+              "startup": false,
+              "init": false
+            },
+            "XIP": {
+              "access": "rx",
+              "start": "0x80000000",
+              "size": "0x2000000",
+              "default": false,
+              "startup": true,
+              "init": false
+            }
+          },
+          "processor": [
+            {
+              "Pname": "P0",
+              "Punits": "2",
+              "Dcore": "RV32",
+              "DcoreVersion": "Andes D45MC",
+              "Dfpu": "FP",
+              "Ddsp": "DSP",
+              "Dmpu": "MPU",
+              "Dendian": "Little-endian",
+              "Dclock": "600000000"
+            }
+          ],
+          "debug": [
+            {
+              "Pname": "P0",
+              "dp": "0"
+            }
+          ],
+          "debugport": [
+            {
+              "dp": "0",
+              "protocol": "jtag",
+              "tapindex": "0",
+              "idcode": "0x1000563D",
+              "irlen": "5"
+            }
+          ],
+          "accessport": [],
+          "sequences": [],
+          "device": {
+            "HPM6750": {
+              "description": "双核 600MHz；ILM/DLM 各 256KB、AXI SRAM0 512KB + SRAM1 256KB、AHB SRAM 32KB；JTAG 参数与双 hart/DM/SBA 能力为 HPM6750EVKmini 实机实测。无片上 flash——外置 SPI NOR 经 XPI 映射于 XIP 窗口，容量按 XIP 最大支持设计（典型 25Q256 = 32MB）",
+              "algorithm": [],
+              "memory": {},
+              "processor": [],
+              "debug": [],
+              "debugport": [],
+              "accessport": [],
+              "sequences": []
+            }
+          },
+          "subFamily": {}
+        }
+      }
+    }
+  ],
+  "diagnostics": []
+}
